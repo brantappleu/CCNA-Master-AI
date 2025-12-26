@@ -1,15 +1,14 @@
-// Fallback type definitions
-declare module '*.css';
-declare module '*.svg';
-declare module '*.png';
-declare module '*.jpg';
-declare module '*.jpeg';
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 
-// Augment the global NodeJS namespace to include API_KEY in ProcessEnv
-// This avoids redeclaring 'process' which causes conflicts with @types/node
-declare namespace NodeJS {
-  interface ProcessEnv {
-    API_KEY: string;
-    [key: string]: string | undefined;
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [react()],
+  build: {
+    outDir: 'dist',
+  },
+  define: {
+    // Safely replace process.env.API_KEY with the string value from Cloudflare
+    'process.env.API_KEY': JSON.stringify(process.env.API_KEY || '')
   }
-}
+})

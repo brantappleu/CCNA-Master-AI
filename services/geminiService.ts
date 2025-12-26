@@ -1,4 +1,4 @@
-import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { GeminiModel } from "../types";
 
 // Helper to get client. Note: We prefer process.env, but fallback to localStorage for the demo if user enters key manually.
@@ -92,21 +92,10 @@ export const generateExamQuestions = async (domain: string, count: number = 5): 
 
 export const runLabSimulation = async (history: {role: string, parts: {text: string}[]}[], model = GeminiModel.FLASH): Promise<string> => {
   try {
-    const ai = getClient();
-    const chat = ai.chats.create({
-      model: model,
-      history: history,
-    });
-    
-    // We send an empty message or the last user message logic is handled by the caller managing history
-    // But for a stateless call, we usually pass the whole history or use chat.sendMessage.
-    // Here we assume the caller manages the chat instance or we re-hydrate.
-    // For simplicity in this demo, we'll use a single generateContent call with history as context, 
-    // OR ideally use the chat object in the component. 
-    // Let's rely on the component to hold the chat object, this function is just a factory or helper if needed.
-    // Actually, to keep it simple and robust, let's just use generateContent with the full history as "contents".
-    
-    return ""; // Placeholder, logic implemented in component for streaming/chat state.
+    // This function is currently a placeholder for advanced state management
+    // The actual chat logic is handled directly in the LabSimulator component
+    // We keep this here for future extension of service-based chat handling
+    return ""; 
   } catch (error) {
     return "Error connecting to Lab Simulator.";
   }
