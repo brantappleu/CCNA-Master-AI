@@ -97,11 +97,71 @@ export const generateExamQuestions = async (domain: string, count: number = 5): 
   }
 };
 
+export const generateFullMockExam = async (count: number = 20): Promise<string> => {
+  try {
+    const ai = getClient();
+    const prompt = `
+      Generate a realistic, full CCNA (200-301) mock exam simulation with ${count} questions.
+      
+      **CRITICAL: Weighting Distribution (Must follow strictly):**
+      - 20% Network Fundamentals
+      - 20% Network Access
+      - 25% IP Connectivity
+      - 10% IP Services
+      - 15% Security Fundamentals
+      - 10% Automation and Programmability
+      
+      **Requirements:**
+      1. Questions must be in **English** (Standard Exam Language).
+      2. Explanations must be in **Chinese (中文)** (For study purposes).
+      3. Include a mix of multiple-choice and scenario-based questions.
+      4. Return ONLY raw JSON array.
+      
+      Format:
+      [
+        {
+          "id": 1,
+          "domain": "1.0 Network Fundamentals",
+          "question": "Question text...",
+          "options": ["A", "B", "C", "D"],
+          "correctAnswer": 0,
+          "explanation": "Explanation in Chinese..."
+        }
+      ]
+    `;
+
+    const response = await ai.models.generateContent({
+      model: GeminiModel.FLASH,
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+         responseSchema: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              id: { type: Type.NUMBER },
+              domain: { type: Type.STRING },
+              question: { type: Type.STRING },
+              options: { type: Type.ARRAY, items: { type: Type.STRING } },
+              correctAnswer: { type: Type.NUMBER },
+              explanation: { type: Type.STRING },
+            },
+          },
+        },
+      }
+    });
+
+    return response.text || "[]";
+  } catch (error) {
+    console.error("Gemini API Error:", error);
+    throw error;
+  }
+};
+
 export const runLabSimulation = async (): Promise<string> => {
   try {
-    // This function is currently a placeholder for advanced state management
-    // The actual chat logic is handled directly in the LabSimulator component
-    // We keep this here for future extension of service-based chat handling
+    // Placeholder for future extension
     return ""; 
   } catch (error) {
     return "Error connecting to Lab Simulator.";
