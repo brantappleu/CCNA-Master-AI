@@ -8,7 +8,7 @@ export default defineConfig({
     outDir: 'dist',
   },
   define: {
-    // This allows process.env to work in client-side code for the API_KEY
-    'process.env': process.env
+    // Safely replace process.env.API_KEY with the string value from Cloudflare
+    'process.env.API_KEY': JSON.stringify(process.env.API_KEY || '')
   }
 })
