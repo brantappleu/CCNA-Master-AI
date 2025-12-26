@@ -90,7 +90,7 @@ export const generateExamQuestions = async (domain: string, count: number = 5): 
   }
 };
 
-export const runLabSimulation = async (history: {role: string, parts: {text: string}[]}[], model = GeminiModel.FLASH): Promise<string> => {
+export const runLabSimulation = async (): Promise<string> => {
   try {
     // This function is currently a placeholder for advanced state management
     // The actual chat logic is handled directly in the LabSimulator component
