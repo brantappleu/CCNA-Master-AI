@@ -6,6 +6,15 @@ export default defineConfig({
   plugins: [react()],
   build: {
     outDir: 'dist',
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-markdown', 'lucide-react', 'recharts'],
+          genai: ['@google/genai']
+        }
+      }
+    }
   },
   define: {
     // Safely replace process.env.API_KEY with the string value from Cloudflare
