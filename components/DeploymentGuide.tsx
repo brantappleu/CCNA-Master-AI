@@ -1,88 +1,122 @@
 import React from 'react';
-import { Copy } from 'lucide-react';
+import { Copy, CheckCircle, Terminal } from 'lucide-react';
 
-const CodeBlock = ({ code }: { code: string }) => (
-  <div className="bg-slate-900 rounded-lg p-4 my-2 relative group">
-    <code className="text-green-400 font-mono text-sm block whitespace-pre-wrap">{code}</code>
-    <button 
-      onClick={() => navigator.clipboard.writeText(code)}
-      className="absolute top-2 right-2 p-1 bg-slate-800 rounded text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity"
-      title="Copy"
-    >
-      <Copy className="w-4 h-4" />
-    </button>
+const CodeBlock = ({ code, label }: { code: string; label?: string }) => (
+  <div className="bg-slate-900 rounded-lg overflow-hidden my-4 border border-slate-700">
+    {label && <div className="bg-slate-800 px-4 py-1 text-xs text-slate-400">{label}</div>}
+    <div className="p-4 relative group">
+      <code className="text-green-400 font-mono text-sm block whitespace-pre-wrap">{code}</code>
+      <button 
+        onClick={() => navigator.clipboard.writeText(code)}
+        className="absolute top-2 right-2 p-1.5 bg-slate-700 hover:bg-slate-600 rounded text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity"
+        title="Copy to clipboard"
+      >
+        <Copy className="w-4 h-4" />
+      </button>
+    </div>
   </div>
 );
 
 const DeploymentGuide: React.FC = () => {
   return (
-    <div className="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-sm border border-slate-100">
-      <h1 className="text-2xl font-bold text-slate-800 mb-6">How to Deploy to Cloudflare Pages</h1>
+    <div className="max-w-4xl mx-auto space-y-8 pb-10">
       
-      <div className="prose prose-slate max-w-none">
-        <p className="text-slate-600 mb-4">
-          This application is built with React 18, TypeScript, and Tailwind CSS. It is fully compatible with Cloudflare Pages as a static site.
-        </p>
-
-        <h3 className="font-bold text-lg mt-6 text-slate-800">1. Project Setup</h3>
-        <p>Ensure you have Node.js installed. Create a folder and save the provided files.</p>
-        <CodeBlock code={`# Install dependencies (if you were running locally)
-npm install react react-dom lucide-react recharts framer-motion @google/genai react-markdown tailwindcss
-
-# Or specifically for this structure, just ensure your package.json has these.`} />
-
-        <h3 className="font-bold text-lg mt-6 text-slate-800">2. Create `package.json`</h3>
-        <p>If you downloaded the code files manually, create a <code>package.json</code> at the root:</p>
-        <CodeBlock code={`{
-  "name": "ccna-master-ai",
-  "version": "1.0.0",
-  "scripts": {
-    "start": "parcel index.html",
-    "build": "parcel build index.html --dist-dir dist"
-  },
-  "dependencies": {
-    "@google/genai": "^0.0.x",
-    "lucide-react": "^0.292.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-markdown": "^9.0.0",
-    "recharts": "^2.10.0"
-  },
-  "devDependencies": {
-    "parcel": "^2.10.0",
-    "process": "^0.11.10",
-    "tailwindcss": "^3.3.0",
-    "typescript": "^5.0.0"
-  }
-}`} />
-        <p className="text-sm text-slate-500 mt-2">Note: We use Parcel here for simplicity, but Vite or CRA works too. Ensure you have a bundler.</p>
-
-        <h3 className="font-bold text-lg mt-6 text-slate-800">3. Cloudflare Pages Deployment</h3>
-        <ol className="list-decimal pl-5 space-y-2 text-slate-700">
-            <li>Push your code to a GitHub repository.</li>
-            <li>Log in to the Cloudflare Dashboard and go to <strong>Workers & Pages</strong>.</li>
-            <li>Click <strong>Create Application</strong> &gt; <strong>Pages</strong> &gt; <strong>Connect to Git</strong>.</li>
-            <li>Select your repository.</li>
-            <li><strong>Build Settings:</strong>
-                <ul className="list-disc pl-5 mt-1 text-sm">
-                    <li>Framework Preset: <code>None</code> (or Parcel if available)</li>
-                    <li>Build command: <code>npm run build</code></li>
-                    <li>Output directory: <code>dist</code></li>
-                </ul>
-            </li>
-            <li><strong>Environment Variables:</strong>
-                <ul className="list-disc pl-5 mt-1 text-sm">
-                    <li>Add <code>API_KEY</code> with your Google GenAI API key.</li>
-                    <li>This ensures the app works without the user manually entering the key in Settings.</li>
-                </ul>
-            </li>
-        </ol>
-
-        <h3 className="font-bold text-lg mt-6 text-slate-800">Security Note</h3>
-        <p className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 text-yellow-800 text-sm">
-           The login credential (admin / Bing123456) is handled client-side in this demo code. For a production environment, implement authentication using Cloudflare Access or Firebase Auth.
+      <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-100">
+        <h1 className="text-3xl font-bold text-slate-800 mb-4">Cloudflare Deployment Guide</h1>
+        <p className="text-slate-600 text-lg">
+          This application is configured as a standard <strong>Vite + React</strong> project. 
+          It is ready for immediate deployment to Cloudflare Pages.
         </p>
       </div>
+
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+            <div className="flex items-center space-x-3 mb-4">
+                <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+                    <Terminal className="w-6 h-6" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-800">1. Local Setup</h3>
+            </div>
+            <p className="text-slate-600 mb-4">If you want to run this locally before deploying:</p>
+            <CodeBlock label="Terminal" code={`npm install
+npm run dev`} />
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+             <div className="flex items-center space-x-3 mb-4">
+                <div className="p-2 bg-green-100 rounded-lg text-green-600">
+                    <CheckCircle className="w-6 h-6" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-800">2. Cloudflare Settings</h3>
+            </div>
+            <p className="text-slate-600 mb-4">Use these exact settings in your Cloudflare Dashboard:</p>
+            <ul className="space-y-3 text-sm text-slate-700 font-mono">
+                <li className="flex justify-between border-b pb-2">
+                    <span>Framework Preset:</span>
+                    <span className="font-bold text-blue-600">Vite / React</span>
+                </li>
+                <li className="flex justify-between border-b pb-2">
+                    <span>Build command:</span>
+                    <span className="font-bold text-blue-600">npm run build</span>
+                </li>
+                <li className="flex justify-between border-b pb-2">
+                    <span>Build output dir:</span>
+                    <span className="font-bold text-blue-600">dist</span>
+                </li>
+                 <li className="flex justify-between">
+                    <span>Environment Vars:</span>
+                    <span className="font-bold text-blue-600">API_KEY (Recommended)</span>
+                </li>
+            </ul>
+        </div>
+      </div>
+
+      <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-100">
+        <h3 className="text-xl font-bold text-slate-800 mb-4">3. Full Deployment Steps</h3>
+        <ol className="list-decimal pl-5 space-y-4 text-slate-700">
+            <li>
+                <strong>Push to Git:</strong> Create a GitHub/GitLab repository and push all these files to it.
+            </li>
+            <li>
+                <strong>Cloudflare Dashboard:</strong> Go to <strong>Workers & Pages</strong> &gt; <strong>Create Application</strong> &gt; <strong>Connect to Git</strong>.
+            </li>
+            <li>
+                <strong>Select Repo:</strong> Choose the repository you just created.
+            </li>
+            <li>
+                <strong>Configuration:</strong> Cloudflare should automatically detect "Vite". If not, manually enter the settings listed above.
+            </li>
+            <li>
+                <strong>Environment Variable:</strong> 
+                Add a variable named <code>API_KEY</code> with your Gemini API key. 
+                <span className="block text-sm text-slate-500 mt-1">
+                    (If you skip this, users will need to manually enter the key in the Settings menu of the deployed app).
+                </span>
+            </li>
+            <li>
+                <strong>Deploy:</strong> Click "Save and Deploy".
+            </li>
+        </ol>
+      </div>
+
+       <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 flex items-start space-x-4">
+          <div className="mt-1">
+            <Terminal className="text-blue-600 w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="font-bold text-blue-900">Direct Upload (Optional)</h4>
+            <p className="text-blue-800 text-sm mt-1">
+              If you don't want to use Git, you can build locally and upload using Wrangler CLI:
+            </p>
+            <div className="mt-3 bg-slate-900 rounded p-3">
+                 <code className="text-green-400 font-mono text-xs">
+                    npm run build<br/>
+                    npx wrangler pages deploy dist --project-name ccna-master-ai
+                 </code>
+            </div>
+          </div>
+       </div>
+
     </div>
   );
 };
