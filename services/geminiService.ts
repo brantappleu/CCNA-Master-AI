@@ -14,17 +14,24 @@ export const generateStudyMaterial = async (topic: string): Promise<string> => {
   try {
     const ai = getClient();
     const prompt = `
-      You are an expert CCNA instructor (Cisco Certified Network Associate).
-      Please provide a comprehensive but concise study guide for the topic: "${topic}".
+      You are an expert CCNA instructor dedicated to teaching beginners.
+      Create a detailed study guide for the topic: "${topic}".
+
+      **Language Rules:**
+      1. Write the main content in **English** (to prepare for the exam).
+      2. When introducing a Key Term or a difficult concept, provide the **Chinese (Mandarin)** translation and a brief Chinese explanation in parentheses or a blockquote immediately following it.
       
-      Structure:
-      1. Key Concepts (Bullet points)
-      2. Configuration Syntax (if applicable, use code blocks)
-      3. Important Exam Notes (Common pitfalls)
-      4. A real-world analogy.
-      
-      Output in Markdown format.
-      Language: Chinese (Mandarin) for explanations, English for technical terms and commands.
+      **Content Requirements (Detailed & Beginner Friendly):**
+      - **Introduction:** Explain *what* this technology is and *why* we use it. Use a real-world analogy (Life Analogy).
+      - **Technical Theory:** Step-by-step explanation. Break down logic simply.
+      - **Configuration:** Provide standard Cisco IOS command syntax with explanations for each command line.
+      - **Verification:** Show useful 'show' commands and explain how to read the output.
+      - **Key Vocabulary:** A summary table of English terms and Chinese definitions at the end.
+
+      **Formatting:**
+      - Use Markdown.
+      - **IMPORTANT:** Add extra blank lines between paragraphs to improve readability.
+      - Use code blocks for all commands.
     `;
 
     const response = await ai.models.generateContent({
@@ -57,7 +64,7 @@ export const generateExamQuestions = async (domain: string, count: number = 5): 
           "question": "Question text in English...",
           "options": ["A", "B", "C", "D"],
           "correctAnswer": 0, (index 0-3)
-          "explanation": "Explanation in Chinese..."
+          "explanation": "Detailed explanation in Chinese (中文)..."
         }
       ]
     `;

@@ -16,13 +16,39 @@ export const CCNA_DOMAINS = [
   "6.0 Automation and Programmability"
 ];
 
+// Ordered according to learning path
 export const STUDY_TOPICS: StudyTopic[] = [
-  { id: 'routing', title: 'OSPF & Static Routing', domain: '3.0 IP Connectivity', icon: 'Network' },
-  { id: 'switching', title: 'VLANs & Trunking', domain: '2.0 Network Access', icon: 'Layers' },
-  { id: 'security', title: 'ACLs & VPNs', domain: '5.0 Security Fundamentals', icon: 'Shield' },
-  { id: 'automation', title: 'REST APIs & SDN', domain: '6.0 Automation', icon: 'Cpu' },
-  { id: 'wireless', title: 'Wireless Principles', domain: '1.0 Network Fundamentals', icon: 'Wifi' },
-  { id: 'services', title: 'DHCP, DNS, NAT', domain: '4.0 IP Services', icon: 'Server' },
+  // 1.0 Fundamentals
+  { id: 'components', title: 'Network Components & Cabling', domain: '1.0 Network Fundamentals', icon: 'Server' },
+  { id: 'tcp-udp', title: 'TCP vs UDP & IPv4 Addressing', domain: '1.0 Network Fundamentals', icon: 'Network' },
+  { id: 'ipv6', title: 'IPv6 Address Types', domain: '1.0 Network Fundamentals', icon: 'Hash' },
+  
+  // 2.0 Network Access
+  { id: 'vlans', title: 'VLANs & 802.1Q Trunking', domain: '2.0 Network Access', icon: 'Layers' },
+  { id: 'stp', title: 'Spanning Tree Protocol (STP)', domain: '2.0 Network Access', icon: 'GitBranch' },
+  { id: 'etherchannel', title: 'EtherChannel (LACP)', domain: '2.0 Network Access', icon: 'Link' },
+  { id: 'wlan', title: 'Wireless Architectures & AP Modes', domain: '2.0 Network Access', icon: 'Wifi' },
+
+  // 3.0 IP Connectivity
+  { id: 'routing-table', title: 'Routing Table Logic', domain: '3.0 IP Connectivity', icon: 'Map' },
+  { id: 'static-routing', title: 'Static Routing & Default Routes', domain: '3.0 IP Connectivity', icon: 'ArrowRight' },
+  { id: 'ospf', title: 'OSPFv2 Concepts & Config', domain: '3.0 IP Connectivity', icon: 'Activity' },
+  { id: 'fhrp', title: 'First Hop Redundancy (HSRP)', domain: '3.0 IP Connectivity', icon: 'Copy' },
+
+  // 4.0 IP Services
+  { id: 'nat', title: 'NAT (Static, Dynamic, PAT)', domain: '4.0 IP Services', icon: 'Globe' },
+  { id: 'dhcp-dns', title: 'DHCP & DNS', domain: '4.0 IP Services', icon: 'Database' },
+  { id: 'snmp-syslog', title: 'SNMP & Syslog', domain: '4.0 IP Services', icon: 'FileText' },
+
+  // 5.0 Security
+  { id: 'security-concepts', title: 'Security Concepts (CIA, Threats)', domain: '5.0 Security Fundamentals', icon: 'Shield' },
+  { id: 'acls', title: 'Access Control Lists (ACLs)', domain: '5.0 Security Fundamentals', icon: 'Lock' },
+  { id: 'l2-security', title: 'L2 Security (DHCP Snooping, ARP)', domain: '5.0 Security Fundamentals', icon: 'ShieldCheck' },
+  { id: 'vpns', title: 'VPN Types (Site-to-Site, Remote)', domain: '5.0 Security Fundamentals', icon: 'Unlock' },
+
+  // 6.0 Automation
+  { id: 'automation-basics', title: 'Automation & SDN Controller', domain: '6.0 Automation', icon: 'Cpu' },
+  { id: 'apis', title: 'REST APIs & JSON', domain: '6.0 Automation', icon: 'Code' },
 ];
 
 export const LAB_SCENARIOS: LabScenario[] = [
