@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CCNA_DOMAINS, STUDY_TOPICS } from '../constants';
 import { generateExamQuestions, generateFullMockExam } from '../services/geminiService';
 import { ExamQuestion } from '../types';
-import { CheckCircle, XCircle, Play, Loader, Clock, Flag, Trophy, PieChart, Target, ArrowRight } from 'lucide-react';
+import { CheckCircle, XCircle, Play, Loader, Clock, Flag, Trophy, PieChart, Target, ArrowRight, FileText, AlertTriangle } from 'lucide-react';
 
 interface ExtendedQuestion extends ExamQuestion {
   userAnswer?: number;
@@ -11,6 +11,7 @@ interface ExtendedQuestion extends ExamQuestion {
 }
 
 const MockExam: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<'drill' | 'simulation'>('drill');
   const [questions, setQuestions] = useState<ExtendedQuestion[]>([]);
   const [loading, setLoading] = useState(false);
   
@@ -18,11 +19,8 @@ const MockExam: React.FC = () => {
   const [drillMode, setDrillMode] = useState<'domain' | 'topic'>('domain');
   const [selectedDrillTarget, setSelectedDrillTarget] = useState(CCNA_DOMAINS[0]);
 
-  // Exam Modes: 'drill' (Specific) vs 'simulation' (Full Mock)
-  const [mode, setMode] = useState<'drill' | 'simulation'>('drill');
-  
-  // States: 'setup' -> 'active' -> 'review'
-  const [examState, setExamState] = useState<'setup' | 'active' | 'review'>('setup');
+  // Exam States: 'intro' -> 'active' -> 'review'
+  const [examState, setExamState] = useState<'intro' | 'active' | 'review'>('intro');
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   
   // Timer state (in seconds)
@@ -51,22 +49,21 @@ const MockExam: React.FC = () => {
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
-  const startExam = async (examMode: 'drill' | 'simulation') => {
-    setMode(examMode);
+  const startExam = async (mode: 'drill' | 'simulation') => {
     setLoading(true);
     try {
       let data: ExtendedQuestion[] = [];
       
-      if (examMode === 'drill') {
+      if (mode === 'drill') {
         // Generate questions for specific domain or topic
         const jsonStr = await generateExamQuestions(selectedDrillTarget, 5);
         data = JSON.parse(jsonStr).map((q: any) => ({ ...q, domain: selectedDrillTarget }));
         setTimeLeft(0); 
       } else {
         // Simulation Mode: Full CCNA mix
-        const jsonStr = await generateFullMockExam(20);
+        const jsonStr = await generateFullMockExam(20); // 20 questions for the demo (real is ~100)
         data = JSON.parse(jsonStr);
-        setTimeLeft(30 * 60); 
+        setTimeLeft(30 * 60); // 30 mins
       }
 
       setQuestions(data);
@@ -116,123 +113,7 @@ const MockExam: React.FC = () => {
     return { score, isPass, correctCount, total, domainStats };
   };
 
-  // --- Render Setup Screen ---
-  if (examState === 'setup') {
-    return (
-      <div className="max-w-5xl mx-auto space-y-8">
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-slate-900">Exam Center</h1>
-          <p className="text-slate-500">Choose your assessment mode designed to mirror the official Cisco environment.</p>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Drill Mode Card */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full hover:shadow-md transition-shadow">
-            <div className="p-6 border-b border-slate-100 bg-slate-50">
-               <div className="flex items-center space-x-3 mb-2">
-                 <div className="bg-blue-100 p-2 rounded-lg text-blue-600">
-                    <Target className="w-6 h-6" />
-                 </div>
-                 <h2 className="text-xl font-bold text-slate-800">Precision Drill</h2>
-               </div>
-               <p className="text-sm text-slate-600">Master specific weak points. Select a broad Domain or a specific Study Topic.</p>
-            </div>
-            
-            <div className="p-6 flex-1 flex flex-col space-y-6">
-              <div className="space-y-4">
-                <div className="flex space-x-4">
-                  <button 
-                    onClick={() => { setDrillMode('domain'); setSelectedDrillTarget(CCNA_DOMAINS[0]); }}
-                    className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${drillMode === 'domain' ? 'bg-blue-100 text-blue-700 border border-blue-200' : 'bg-slate-50 text-slate-600 border border-slate-200'}`}
-                  >
-                    By Domain
-                  </button>
-                  <button 
-                    onClick={() => { setDrillMode('topic'); setSelectedDrillTarget(STUDY_TOPICS[0].title); }}
-                    className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${drillMode === 'topic' ? 'bg-blue-100 text-blue-700 border border-blue-200' : 'bg-slate-50 text-slate-600 border border-slate-200'}`}
-                  >
-                    By Topic
-                  </button>
-                </div>
-
-                <div className="relative">
-                  <select 
-                    className="w-full p-3 pl-4 pr-10 appearance-none bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
-                    value={selectedDrillTarget}
-                    onChange={(e) => setSelectedDrillTarget(e.target.value)}
-                  >
-                    {drillMode === 'domain' 
-                      ? CCNA_DOMAINS.map(d => <option key={d} value={d}>{d}</option>)
-                      : STUDY_TOPICS.map(t => <option key={t.id} value={t.title}>{t.title} ({t.domain})</option>)
-                    }
-                  </select>
-                  <div className="absolute right-3 top-3.5 text-slate-400 pointer-events-none">
-                    <ArrowRight className="w-4 h-4 rotate-90" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-auto pt-4">
-                <button 
-                  onClick={() => startExam('drill')}
-                  disabled={loading}
-                  className="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3.5 rounded-lg flex items-center justify-center space-x-2 transition-all"
-                >
-                  {loading && mode === 'drill' ? <Loader className="animate-spin w-5 h-5" /> : <Play className="w-5 h-5" />}
-                  <span>Start Custom Drill</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Simulation Mode Card */}
-          <div className="bg-white rounded-xl shadow-lg border border-blue-100 overflow-hidden flex flex-col h-full relative group">
-            <div className="absolute top-0 right-0 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-bl-lg z-10">RECOMMENDED</div>
-            
-            <div className="p-6 border-b border-blue-50 bg-blue-50/30">
-               <div className="flex items-center space-x-3 mb-2">
-                 <div className="bg-yellow-100 p-2 rounded-lg text-yellow-700">
-                    <Trophy className="w-6 h-6" />
-                 </div>
-                 <h2 className="text-xl font-bold text-slate-800">Full CCNA Simulation</h2>
-               </div>
-               <p className="text-sm text-slate-600">Complete mock exam reflecting the official weighting.</p>
-            </div>
-
-            <div className="p-6 flex-1 flex flex-col">
-              <div className="space-y-4 mb-6">
-                <div className="flex items-center justify-between text-sm p-3 bg-slate-50 rounded border border-slate-100">
-                  <span className="text-slate-600">Question Count</span>
-                  <span className="font-mono font-bold text-slate-800">20 Questions</span>
-                </div>
-                <div className="flex items-center justify-between text-sm p-3 bg-slate-50 rounded border border-slate-100">
-                   <span className="text-slate-600">Time Limit</span>
-                   <span className="font-mono font-bold text-slate-800">30 Minutes</span>
-                </div>
-                <div className="flex items-center justify-between text-sm p-3 bg-slate-50 rounded border border-slate-100">
-                   <span className="text-slate-600">Passing Score</span>
-                   <span className="font-mono font-bold text-slate-800">825 / 1000</span>
-                </div>
-              </div>
-
-              <div className="mt-auto">
-                <button 
-                  onClick={() => startExam('simulation')}
-                  disabled={loading}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-lg flex items-center justify-center space-x-2 transition-all shadow-md shadow-blue-200 hover:shadow-lg"
-                >
-                  {loading && mode === 'simulation' ? <Loader className="animate-spin w-5 h-5" /> : <Clock className="w-5 h-5" />}
-                  <span>Start Mock Exam</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // --- Render Result Screen ---
+  // --- Render Result Screen (Common) ---
   if (examState === 'review') {
     const { score, isPass, correctCount, total, domainStats } = calculateScore();
     return (
@@ -261,7 +142,7 @@ const MockExam: React.FC = () => {
                 </div>
 
                 {/* Domain Breakdown */}
-                {mode === 'simulation' && (
+                {activeTab === 'simulation' && (
                   <div className="p-8 border-b border-slate-100">
                     <h3 className="flex items-center text-lg font-bold text-slate-800 mb-6">
                       <PieChart className="w-5 h-5 mr-2 text-blue-500" />
@@ -330,7 +211,7 @@ const MockExam: React.FC = () => {
                         ))}
                     </div>
                     <button
-                        onClick={() => setExamState('setup')}
+                        onClick={() => setExamState('intro')}
                         className="mt-8 w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-slate-800 transition-colors shadow-lg"
                     >
                         Return to Exam Dashboard
@@ -342,105 +223,256 @@ const MockExam: React.FC = () => {
   }
 
   // --- Render Active Exam Screen ---
-  const currentQ = questions[currentQuestionIdx];
-
-  return (
-    <div className="max-w-5xl mx-auto flex flex-col h-[calc(100vh-8rem)]">
-      {/* Exam Header */}
-      <div className="bg-white px-6 py-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex justify-between items-center">
-        <div className="flex items-center space-x-4">
-            <span className="text-2xl font-bold text-slate-800">Q{currentQuestionIdx + 1}</span>
-            <div className="h-8 w-px bg-slate-200"></div>
-            <div className="flex flex-col">
-              <span className="text-xs text-slate-400 uppercase tracking-wider font-bold">Domain</span>
-              <span className="text-sm font-medium text-slate-600">{currentQ.domain || 'CCNA Exam'}</span>
-            </div>
-        </div>
-        
-        <div className="flex items-center space-x-6">
-            {mode === 'simulation' && (
-                <div className={`flex items-center space-x-2 font-mono text-xl font-bold ${timeLeft < 300 ? 'text-red-500 animate-pulse' : 'text-slate-700'}`}>
-                    <Clock className="w-5 h-5" />
-                    <span>{formatTime(timeLeft)}</span>
+  if (examState === 'active') {
+    const currentQ = questions[currentQuestionIdx];
+    return (
+        <div className="max-w-5xl mx-auto flex flex-col h-[calc(100vh-8rem)]">
+          {/* Exam Header */}
+          <div className="bg-white px-6 py-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex justify-between items-center">
+            <div className="flex items-center space-x-4">
+                <span className="text-2xl font-bold text-slate-800">Q{currentQuestionIdx + 1}</span>
+                <div className="h-8 w-px bg-slate-200"></div>
+                <div className="flex flex-col">
+                  <span className="text-xs text-slate-400 uppercase tracking-wider font-bold">Domain</span>
+                  <span className="text-sm font-medium text-slate-600">{currentQ.domain || 'CCNA Exam'}</span>
                 </div>
-            )}
-            <button 
-                onClick={toggleMark}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-all ${currentQ.marked ? 'bg-orange-50 border-orange-200 text-orange-600 font-bold' : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'}`}
-            >
-                <Flag className="w-4 h-4" fill={currentQ.marked ? "currentColor" : "none"} />
-                <span>{currentQ.marked ? 'Marked' : 'Mark'}</span>
-            </button>
-        </div>
-      </div>
-
-      {/* Question Area */}
-      <div className="flex-1 bg-white p-8 md:p-10 rounded-xl shadow-lg border border-slate-200 overflow-y-auto mb-6 relative">
-        <div className="max-w-3xl mx-auto">
-           <p className="text-2xl text-slate-900 font-medium leading-relaxed mb-10">{currentQ.question}</p>
-        
-           <div className="space-y-4">
-            {currentQ.options.map((opt, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleAnswer(idx)}
-                  className={`w-full text-left p-5 rounded-xl border-2 transition-all flex items-center group ${
-                      currentQ.userAnswer === idx 
-                      ? "border-blue-600 bg-blue-50/50 shadow-sm" 
-                      : "border-slate-200 hover:border-blue-300 hover:bg-slate-50"
-                  }`}
+            </div>
+            
+            <div className="flex items-center space-x-6">
+                {activeTab === 'simulation' && (
+                    <div className={`flex items-center space-x-2 font-mono text-xl font-bold ${timeLeft < 300 ? 'text-red-500 animate-pulse' : 'text-slate-700'}`}>
+                        <Clock className="w-5 h-5" />
+                        <span>{formatTime(timeLeft)}</span>
+                    </div>
+                )}
+                <button 
+                    onClick={toggleMark}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-all ${currentQ.marked ? 'bg-orange-50 border-orange-200 text-orange-600 font-bold' : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'}`}
                 >
-                  <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center mr-5 font-bold text-lg transition-colors flex-shrink-0 ${
-                      currentQ.userAnswer === idx
-                      ? "border-blue-600 bg-blue-600 text-white"
-                      : "border-slate-300 text-slate-400 group-hover:border-blue-400 group-hover:text-blue-500"
-                  }`}>
-                      {String.fromCharCode(65 + idx)}
-                  </div>
-                  <span className={`text-lg ${currentQ.userAnswer === idx ? 'text-slate-900 font-semibold' : 'text-slate-600'}`}>
-                      {opt}
-                  </span>
+                    <Flag className="w-4 h-4" fill={currentQ.marked ? "currentColor" : "none"} />
+                    <span>{currentQ.marked ? 'Marked' : 'Mark'}</span>
                 </button>
-              ))}
+            </div>
+          </div>
+
+          {/* Question Area */}
+          <div className="flex-1 bg-white p-8 md:p-10 rounded-xl shadow-lg border border-slate-200 overflow-y-auto mb-6 relative">
+            <div className="max-w-3xl mx-auto">
+              <p className="text-2xl text-slate-900 font-medium leading-relaxed mb-10">{currentQ.question}</p>
+            
+              <div className="space-y-4">
+                {currentQ.options.map((opt, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleAnswer(idx)}
+                      className={`w-full text-left p-5 rounded-xl border-2 transition-all flex items-center group ${
+                          currentQ.userAnswer === idx 
+                          ? "border-blue-600 bg-blue-50/50 shadow-sm" 
+                          : "border-slate-200 hover:border-blue-300 hover:bg-slate-50"
+                      }`}
+                    >
+                      <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center mr-5 font-bold text-lg transition-colors flex-shrink-0 ${
+                          currentQ.userAnswer === idx
+                          ? "border-blue-600 bg-blue-600 text-white"
+                          : "border-slate-300 text-slate-400 group-hover:border-blue-400 group-hover:text-blue-500"
+                      }`}>
+                          {String.fromCharCode(65 + idx)}
+                      </div>
+                      <span className={`text-lg ${currentQ.userAnswer === idx ? 'text-slate-900 font-semibold' : 'text-slate-600'}`}>
+                          {opt}
+                      </span>
+                    </button>
+                  ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Navigation Footer */}
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setCurrentQuestionIdx(Math.max(0, currentQuestionIdx - 1))}
+              disabled={currentQuestionIdx === 0}
+              className="px-8 py-4 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 disabled:opacity-50 font-bold transition-colors"
+            >
+              Previous
+            </button>
+
+            {/* Progress Bar (Visual) */}
+            <div className="hidden md:flex flex-1 mx-8 h-2 bg-slate-200 rounded-full overflow-hidden">
+                <div 
+                  className="bg-blue-600 h-full transition-all duration-300" 
+                  style={{ width: `${((currentQuestionIdx + 1) / questions.length) * 100}%` }}
+                ></div>
+            </div>
+
+            {currentQuestionIdx < questions.length - 1 ? (
+              <button
+                onClick={() => setCurrentQuestionIdx(currentQuestionIdx + 1)}
+                className="px-8 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-bold shadow-lg shadow-blue-200 transition-transform active:scale-95"
+              >
+                Next Question
+              </button>
+            ) : (
+              <button
+                onClick={submitExam}
+                className="px-8 py-4 bg-green-600 text-white rounded-xl hover:bg-green-700 font-bold shadow-lg shadow-green-200 flex items-center space-x-2 transition-transform active:scale-95"
+              >
+                <span>Finish Exam</span>
+                <CheckCircle className="w-5 h-5" />
+              </button>
+            )}
           </div>
         </div>
-      </div>
+    );
+  }
 
-      {/* Navigation Footer */}
-      <div className="flex items-center justify-between">
-        <button
-          onClick={() => setCurrentQuestionIdx(Math.max(0, currentQuestionIdx - 1))}
-          disabled={currentQuestionIdx === 0}
-          className="px-8 py-4 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 disabled:opacity-50 font-bold transition-colors"
-        >
-          Previous
-        </button>
-
-        {/* Progress Bar (Visual) */}
-        <div className="hidden md:flex flex-1 mx-8 h-2 bg-slate-200 rounded-full overflow-hidden">
-            <div 
-              className="bg-blue-600 h-full transition-all duration-300" 
-              style={{ width: `${((currentQuestionIdx + 1) / questions.length) * 100}%` }}
-            ></div>
+  // --- Render Intro / Selection Screen (Default) ---
+  return (
+    <div className="max-w-6xl mx-auto">
+        {/* Top Tabs */}
+        <div className="flex justify-center mb-8">
+            <div className="bg-white p-1 rounded-xl border border-slate-200 shadow-sm flex space-x-1">
+                <button 
+                    onClick={() => setActiveTab('drill')}
+                    className={`px-6 py-2.5 rounded-lg font-bold text-sm transition-all ${activeTab === 'drill' ? 'bg-slate-800 text-white shadow' : 'text-slate-600 hover:bg-slate-50'}`}
+                >
+                    <div className="flex items-center space-x-2">
+                        <Target className="w-4 h-4" />
+                        <span>Topic Drill</span>
+                    </div>
+                </button>
+                <button 
+                    onClick={() => setActiveTab('simulation')}
+                    className={`px-6 py-2.5 rounded-lg font-bold text-sm transition-all ${activeTab === 'simulation' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 hover:bg-slate-50'}`}
+                >
+                    <div className="flex items-center space-x-2">
+                        <Trophy className="w-4 h-4" />
+                        <span>Full Certification Exam</span>
+                    </div>
+                </button>
+            </div>
         </div>
 
-        {currentQuestionIdx < questions.length - 1 ? (
-          <button
-            onClick={() => setCurrentQuestionIdx(currentQuestionIdx + 1)}
-            className="px-8 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-bold shadow-lg shadow-blue-200 transition-transform active:scale-95"
-          >
-            Next Question
-          </button>
+        {/* Tab Content */}
+        {activeTab === 'drill' ? (
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden max-w-2xl mx-auto">
+                <div className="p-8 border-b border-slate-100 bg-slate-50">
+                    <h2 className="text-2xl font-bold text-slate-800 mb-2">Knowledge Point Drill</h2>
+                    <p className="text-slate-600">Focus on specific domains or individual topics to strengthen your weak areas.</p>
+                </div>
+                
+                <div className="p-8 space-y-6">
+                    <div className="flex space-x-4 mb-4">
+                        <button 
+                            onClick={() => { setDrillMode('domain'); setSelectedDrillTarget(CCNA_DOMAINS[0]); }}
+                            className={`flex-1 py-3 rounded-lg text-sm font-bold border transition-colors ${drillMode === 'domain' ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-slate-200 text-slate-600'}`}
+                        >
+                            By Domain (Broad)
+                        </button>
+                        <button 
+                            onClick={() => { setDrillMode('topic'); setSelectedDrillTarget(STUDY_TOPICS[0].title); }}
+                            className={`flex-1 py-3 rounded-lg text-sm font-bold border transition-colors ${drillMode === 'topic' ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-slate-200 text-slate-600'}`}
+                        >
+                            By Topic (Specific)
+                        </button>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Select Target:</label>
+                        <select 
+                            className="w-full p-4 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+                            value={selectedDrillTarget}
+                            onChange={(e) => setSelectedDrillTarget(e.target.value)}
+                        >
+                            {drillMode === 'domain' 
+                            ? CCNA_DOMAINS.map(d => <option key={d} value={d}>{d}</option>)
+                            : STUDY_TOPICS.map(t => <option key={t.id} value={t.title}>{t.title} ({t.domain})</option>)
+                            }
+                        </select>
+                    </div>
+
+                    <button 
+                        onClick={() => startExam('drill')}
+                        disabled={loading}
+                        className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 rounded-xl flex items-center justify-center space-x-2 transition-all mt-4"
+                    >
+                        {loading ? <Loader className="animate-spin w-5 h-5" /> : <Play className="w-5 h-5" />}
+                        <span>Start Practice Drill</span>
+                    </button>
+                </div>
+            </div>
         ) : (
-          <button
-            onClick={submitExam}
-            className="px-8 py-4 bg-green-600 text-white rounded-xl hover:bg-green-700 font-bold shadow-lg shadow-green-200 flex items-center space-x-2 transition-transform active:scale-95"
-          >
-            <span>Finish Exam</span>
-            <CheckCircle className="w-5 h-5" />
-          </button>
+            // FULL SIMULATION INTRO - Pearson VUE Style
+            <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden relative">
+                <div className="bg-blue-600 p-8 text-white">
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <h2 className="text-3xl font-bold mb-2">Exam 200-301: Cisco Certified Network Associate</h2>
+                            <p className="text-blue-100">Official Exam Simulation</p>
+                        </div>
+                        <div className="bg-white/10 px-4 py-2 rounded text-sm font-mono backdrop-blur-sm">
+                            CANDIDATE: ADMIN
+                        </div>
+                    </div>
+                </div>
+
+                <div className="p-8 md:p-12">
+                     <div className="grid md:grid-cols-3 gap-8 mb-10">
+                        <div className="flex items-start space-x-4">
+                            <div className="bg-blue-50 p-3 rounded-lg text-blue-600">
+                                <Clock className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-slate-800">Time Limit</h4>
+                                <p className="text-slate-500 text-sm">30 Minutes (Demo)</p>
+                            </div>
+                        </div>
+                        <div className="flex items-start space-x-4">
+                            <div className="bg-blue-50 p-3 rounded-lg text-blue-600">
+                                <FileText className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-slate-800">Questions</h4>
+                                <p className="text-slate-500 text-sm">20 Questions (Weighted)</p>
+                            </div>
+                        </div>
+                        <div className="flex items-start space-x-4">
+                            <div className="bg-blue-50 p-3 rounded-lg text-blue-600">
+                                <Target className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-slate-800">Passing Score</h4>
+                                <p className="text-slate-500 text-sm">825 / 1000</p>
+                            </div>
+                        </div>
+                     </div>
+
+                     <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 mb-10">
+                        <div className="flex items-start space-x-3 mb-4">
+                            <AlertTriangle className="w-5 h-5 text-amber-600 mt-1" />
+                            <h4 className="font-bold text-amber-900">Exam Instructions</h4>
+                        </div>
+                        <ul className="list-disc pl-5 space-y-2 text-amber-800 text-sm">
+                            <li>The exam consists of multiple-choice and multiple-response questions.</li>
+                            <li>You can mark questions to review them later before submitting.</li>
+                            <li>This simulation covers all 6 domains weighted according to the official blueprint.</li>
+                            <li>Once you click "Begin Exam", the timer will start immediately.</li>
+                        </ul>
+                     </div>
+
+                     <div className="flex justify-center">
+                        <button 
+                            onClick={() => startExam('simulation')}
+                            disabled={loading}
+                            className="px-10 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-200 transition-all flex items-center space-x-3 hover:scale-105"
+                        >
+                             {loading ? <Loader className="animate-spin w-6 h-6" /> : <Play className="w-6 h-6" />}
+                             <span>Agree & Begin Exam</span>
+                        </button>
+                     </div>
+                </div>
+            </div>
         )}
-      </div>
     </div>
   );
 };
