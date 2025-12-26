@@ -97,7 +97,7 @@ export const generateExamQuestions = async (domain: string, count: number = 5): 
   }
 };
 
-export const generateFullMockExam = async (count: number = 20): Promise<string> => {
+export const generateFullMockExam = async (count: number = 30): Promise<string> => {
   try {
     const ai = getClient();
     const prompt = `
@@ -115,7 +115,7 @@ export const generateFullMockExam = async (count: number = 20): Promise<string> 
       1. Questions must be in **English** (Standard Exam Language).
       2. Explanations must be in **Chinese (中文)** (For study purposes).
       3. Include a mix of multiple-choice and scenario-based questions.
-      4. Return ONLY raw JSON array.
+      4. Ensure all options are plausible.
       
       Format:
       [
