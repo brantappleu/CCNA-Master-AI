@@ -25,7 +25,11 @@ const App: React.FC = () => {
       case ViewState.LAB:
         return <LabSimulator />;
       case ViewState.EXAM:
-        return <MockExam />;
+        // Practice Drills
+        return <MockExam initialMode="drill" />;
+      case ViewState.FULL_EXAM:
+        // Full Simulator
+        return <MockExam initialMode="simulation" />;
       case ViewState.DEPLOY:
         return <DeploymentGuide />;
       default:

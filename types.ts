@@ -4,6 +4,7 @@ export enum ViewState {
   STUDY = 'STUDY',
   LAB = 'LAB',
   EXAM = 'EXAM',
+  FULL_EXAM = 'FULL_EXAM',
   DEPLOY = 'DEPLOY'
 }
 

@@ -9,7 +9,8 @@ import {
   Settings, 
   LogOut,
   Menu,
-  X
+  X,
+  Trophy
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -67,14 +68,17 @@ const Layout: React.FC<LayoutProps> = ({ currentView, setView, onLogout, childre
             <h1 className="text-xl font-bold text-white tracking-wider flex items-center">
               <span className="text-blue-500 mr-2">Cisco</span> AI
             </h1>
-            <p className="text-xs text-slate-500 mt-1">v2.0.0-CAN</p>
+            <p className="text-xs text-slate-500 mt-1">v2.1.0-CAN</p>
           </div>
 
           <nav className="flex-1 mt-6 md:mt-0 pt-16 md:pt-6">
             <NavItem view={ViewState.DASHBOARD} icon={LayoutDashboard} label="Dashboard" />
             <NavItem view={ViewState.STUDY} icon={BookOpen} label="Study Modules" />
             <NavItem view={ViewState.LAB} icon={Terminal} label="Lab Simulator" />
-            <NavItem view={ViewState.EXAM} icon={PenTool} label="Mock Exam" />
+            <div className="my-2 border-t border-slate-800 mx-4"></div>
+            <NavItem view={ViewState.EXAM} icon={PenTool} label="Practice Drills" />
+            <NavItem view={ViewState.FULL_EXAM} icon={Trophy} label="Full Simulator" />
+            <div className="my-2 border-t border-slate-800 mx-4"></div>
             <NavItem view={ViewState.DEPLOY} icon={Cloud} label="Deployment" />
           </nav>
 

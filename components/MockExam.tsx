@@ -13,9 +13,20 @@ interface ExtendedQuestion extends ExamQuestion {
 type ExamStage = 'selection' | 'drill-setup' | 'sim-intro' | 'active' | 'review';
 type ExamMode = 'drill' | 'simulation';
 
-const MockExam: React.FC = () => {
-  const [stage, setStage] = useState<ExamStage>('selection');
-  const [examMode, setExamMode] = useState<ExamMode>('drill');
+interface MockExamProps {
+  initialMode?: ExamMode;
+}
+
+const MockExam: React.FC<MockExamProps> = ({ initialMode }) => {
+  // If initialMode is provided (via sidebar), skip selection. 
+  // If no initialMode (generic entry), show selection.
+  const [stage, setStage] = useState<ExamStage>(
+    initialMode === 'drill' ? 'drill-setup' : 
+    initialMode === 'simulation' ? 'sim-intro' : 
+    'selection'
+  );
+  
+  const [examMode, setExamMode] = useState<ExamMode>(initialMode || 'drill');
   
   const [questions, setQuestions] = useState<ExtendedQuestion[]>([]);
   const [loading, setLoading] = useState(false);
@@ -26,6 +37,16 @@ const MockExam: React.FC = () => {
 
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [timeLeft, setTimeLeft] = useState(0);
+
+  // Sync prop changes if menu is clicked while component is mounted
+  useEffect(() => {
+    if (initialMode) {
+      setExamMode(initialMode);
+      setStage(initialMode === 'drill' ? 'drill-setup' : 'sim-intro');
+      setQuestions([]); // Reset questions on mode switch
+      setCurrentQuestionIdx(0);
+    }
+  }, [initialMode]);
 
   // Timer Effect
   useEffect(() => {
@@ -119,9 +140,19 @@ const MockExam: React.FC = () => {
     return { score, isPass, correctCount, total, domainStats };
   };
 
+  const resetExam = () => {
+    if (initialMode) {
+        // If mode is forced (sidebar), return to that mode's setup
+        setStage(initialMode === 'drill' ? 'drill-setup' : 'sim-intro');
+    } else {
+        setStage('selection');
+    }
+    setQuestions([]);
+  };
+
   // --- Renders ---
 
-  // 1. Selection Screen (Entry Point)
+  // 1. Selection Screen (Only if no initialMode is passed)
   if (stage === 'selection') {
     return (
       <div className="max-w-5xl mx-auto h-[calc(100vh-8rem)] flex flex-col justify-center">
@@ -178,10 +209,15 @@ const MockExam: React.FC = () => {
     return (
       <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden mt-10">
         <div className="p-6 border-b border-slate-100 flex items-center">
-           <button onClick={() => setStage('selection')} className="mr-4 p-2 hover:bg-slate-100 rounded-full transition-colors">
-             <ArrowLeft className="w-5 h-5 text-slate-500" />
-           </button>
-           <h2 className="text-xl font-bold text-slate-800">Configure Practice Drill</h2>
+           {!initialMode && (
+               <button onClick={() => setStage('selection')} className="mr-4 p-2 hover:bg-slate-100 rounded-full transition-colors">
+                 <ArrowLeft className="w-5 h-5 text-slate-500" />
+               </button>
+           )}
+           <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+             <Target className="w-5 h-5 text-blue-600" />
+             Configure Practice Drill
+           </h2>
         </div>
         
         <div className="p-8 space-y-8">
@@ -234,9 +270,11 @@ const MockExam: React.FC = () => {
     return (
         <div className="max-w-4xl mx-auto mt-6">
             <div className="mb-6 flex items-center">
-               <button onClick={() => setStage('selection')} className="flex items-center text-slate-500 hover:text-slate-800 transition-colors font-medium">
-                 <ArrowLeft className="w-4 h-4 mr-2" /> Back to Selection
-               </button>
+               {!initialMode && (
+                   <button onClick={() => setStage('selection')} className="flex items-center text-slate-500 hover:text-slate-800 transition-colors font-medium">
+                     <ArrowLeft className="w-4 h-4 mr-2" /> Back to Selection
+                   </button>
+               )}
             </div>
 
             <div className="bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
@@ -313,7 +351,6 @@ const MockExam: React.FC = () => {
   }
 
   // 4. Active Exam & 5. Review (Shared Result Logic)
-  // ... (Reusing existing logic for active/review states)
   
   // REVIEW STATE
   if (stage === 'review') {
@@ -409,10 +446,10 @@ const MockExam: React.FC = () => {
                         ))}
                     </div>
                     <button
-                        onClick={() => setStage('selection')}
+                        onClick={resetExam}
                         className="mt-8 w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-slate-800 transition-colors shadow-lg"
                     >
-                        Return to Exam Center
+                        Return to {initialMode === 'simulation' ? 'Exam Intro' : 'Setup'}
                     </button>
                 </div>
             </div>
